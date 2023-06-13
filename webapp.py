@@ -1,88 +1,16 @@
-import cv2
 import streamlit as st
+import cv2
 import numpy as np
 from PIL import Image
-from streamlit_image_comparison import image_comparison
 import io
 
-
-def brighten_image(image, amount):
-    img_bright = cv2.convertScaleAbs(image, beta=amount)
-    return img_bright
-
-
-def blur_image(image, amount):
-    blur_img = cv2.GaussianBlur(image, (11, 11), amount)
-    return blur_img
-
-
-def enhance_details(img):
-    hdr = cv2.detailEnhance(img, sigma_s=12, sigma_r=0.15)
-    return hdr
-
-
-def cartoon_effect(img):
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray_blur = cv2.medianBlur(gray, 7)
-    edges = cv2.adaptiveThreshold(gray_blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 7)
-    color = cv2.bilateralFilter(img, 9, 250, 250)
-    cartoon_img = cv2.bitwise_and(color, color, mask=edges)
-    return cartoon_img
-
-
-def greyscale(img):
-    greyscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    return greyscale
-
-
-def sepia(img):
-    img_sepia = np.array(img, dtype=np.float64)  # converting to float to prevent loss
-    img_sepia = cv2.transform(img_sepia, np.matrix([[0.272, 0.534, 0.131],
-                                                    [0.349, 0.686, 0.168],
-                                                    [0.393, 0.769, 0.189]]))  # multiplying image with sepia matrix
-    img_sepia[np.where(img_sepia > 255)] = 255  # normalizing values greater than 255 to 255
-    img_sepia = np.array(img_sepia, dtype=np.uint8)
-    return img_sepia
-
-
-def pencil_sketch_grey(img):
-    sk_gray, sk_color = cv2.pencilSketch(img, sigma_s=60, sigma_r=0.07, shade_factor=0.1)
-    return sk_gray
-
-
-def invert(img):
-    inv = cv2.bitwise_not(img)
-    return inv
-
-
-def summer(img):
-    summer_img = img.copy()
-    summer_img[..., 0] = np.clip(img[..., 0] * 1.2, 0, 255)
-    summer_img[..., 2] = np.clip(img[..., 2] * 0.8, 0, 255)
-    return summer_img
-
-
-def winter(img):
-    winter_img = img.copy()
-    winter_img[..., 0] = np.clip(img[..., 0] * 0.8, 0, 255)
-    winter_img[..., 2] = np.clip(img[..., 2] * 1.2, 0, 255)
-    return winter_img
-
-
-def save_image(image, filename):
-    image_pil = Image.fromarray(image)
-    image_pil.save(filename)
-
-
 def main_loop():
-    st.title("Image Editor")
-    st.subheader("You can edit and apply Filters to your images!")
+    st.title("Image Filters")
 
     filters = {
-        "Original Image": "Original Image without any modifications",
         "Cartoon Effect": "Apply a cartoon effect to the image",
         "Gray Effect": "Convert the image to grayscale",
-        "Sepia Effect": "Apply a sepia tone effect to the image",
+        "Sepia Effect": "Apply a sepia tone to the image",
         "Pencil Sketch": "Create a pencil sketch effect",
         "Invert Effect": "Invert the colors of the image",
         "Summer": "Apply a summer color effect",
@@ -97,12 +25,12 @@ def main_loop():
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
-    apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
 
     detect_faces = selected_filter == "Detect Faces"
 
     if detect_faces:
         face_filters = {
+            "Default": "Remove any applied face filter",
             "Glasses 1": "Apply Glasses 1 filter to the detected eyes",
             "Glasses 2": "Apply Glasses 2 filter to the detected eyes",
             "Glasses 3": "Apply Glasses 3 filter to the detected eyes",
@@ -140,27 +68,83 @@ def main_loop():
     processed_image = blur_image(processed_image, blur_rate)
     processed_image = brighten_image(processed_image, brightness_amount)
 
-    if apply_enhancement_filter:
-        processed_image = enhance_details(processed_image)
-
     if detect_faces:
         processed_image, faces, eyes = detect_and_draw_faces(processed_image)
-        if selected_face_filter:
+        if selected_face_filter != "Default":
             processed_image = apply_face_filter(processed_image, eyes, selected_face_filter)
 
-    st.text("Original Image vs Processed Image")
+    st.image(processed_image, use_column_width=True)
 
-    image_comparison(
-        img1=original_image,
-        img2=processed_image,
-    )
 
-    # Download link for the processed image
-    processed_image_pil = Image.fromarray(processed_image)
-    output = io.BytesIO()
-    processed_image_pil.save(output, format='JPEG')
-    output.seek(0)
-    st.download_button("Download Processed Image", data=output, file_name="processed_image.jpg")
+def cartoon_effect(image, num_down=2, num_bilateral=7):
+    img_color = image
+    for _ in range(num_down):
+        img_color = cv2.pyrDown(img_color)
+
+    for _ in range(num_bilateral):
+        img_color = cv2.bilateralFilter(img_color, d=9, sigmaColor=9, sigmaSpace=7)
+
+    for _ in range(num_down):
+        img_color = cv2.pyrUp(img_color)
+
+    img_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    img_blur = cv2.medianBlur(img_gray, 7)
+
+    img_edge = cv2.adaptiveThreshold(img_blur, 255,
+                                     cv2.ADAPTIVE_THRESH_MEAN_C,
+                                     cv2.THRESH_BINARY,
+                                     blockSize=9,
+                                     C=2)
+
+    img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
+    return cv2.bitwise_and(img_color, img_edge)
+
+
+def greyscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
+
+def sepia(image):
+    sepia_matrix = np.array([[0.272, 0.534, 0.131],
+                             [0.349, 0.686, 0.168],
+                             [0.393, 0.769, 0.189]])
+    sepia_image = cv2.transform(image, sepia_matrix)
+    sepia_image = np.clip(sepia_image, 0, 255).astype(np.uint8)
+    return sepia_image
+
+
+def pencil_sketch_grey(image):
+    img_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    img_blur = cv2.GaussianBlur(img_gray, (21, 21), sigmaX=0, sigmaY=0)
+    img_blend = cv2.divide(img_gray, img_blur, scale=256.0)
+    return img_blend
+
+
+def invert(image):
+    return cv2.bitwise_not(image)
+
+
+def summer(image):
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    image_hsv[:, :, 1] = image_hsv[:, :, 1] + 25
+    return cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
+
+
+def winter(image):
+    image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    image_hsv[:, :, 1] = image_hsv[:, :, 1] - 25
+    return cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
+
+
+def blur_image(image, rate):
+    ksize = int(rate * 5)
+    return cv2.blur(image, (ksize, ksize))
+
+
+def brighten_image(image, amount):
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    hsv_image[:, :, 2] = np.where((hsv_image[:, :, 2] + amount) > 255, 255, hsv_image[:, :, 2] + amount)
+    return cv2.cvtColor(hsv_image, cv2.COLOR_HSV2RGB)
 
 
 def detect_and_draw_faces(image):
@@ -171,34 +155,35 @@ def detect_and_draw_faces(image):
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
     for (x, y, w, h) in faces:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        roi_gray = gray[y:y + h, x:x + w]
-        roi_color = image[y:y + h, x:x + w]
+        cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        roi_gray = gray[y:y+h, x:x+w]
+        roi_color = image[y:y+h, x:x+w]
         eyes = eye_cascade.detectMultiScale(roi_gray)
         for (ex, ey, ew, eh) in eyes:
-            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (255, 0, 0), 2)
+            cv2.rectangle(roi_color, (ex, ey), (ex+ew, ey+eh), (255, 0, 0), 2)
 
     return image, faces, eyes
 
 
 def apply_face_filter(image, eyes, selected_face_filter):
-    filter_path = f"Glasses_{selected_face_filter.split(' ')[-1]}.png"
-    filter_image = cv2.imread(filter_path, cv2.IMREAD_UNCHANGED)
+    glasses_filter_path = f"path/to/{selected_face_filter}.png"
+    glasses_image = cv2.imread(glasses_filter_path, cv2.IMREAD_UNCHANGED)
 
     for (ex, ey, ew, eh) in eyes:
-        # Adjust the position and size of the filter based on eye position and size
-        filter_resized = cv2.resize(filter_image, (ew, eh))
-        y_offset = ey - int(eh / 3)
-        x_offset = ex
-        y1, y2 = max(0, y_offset), min(image.shape[0], y_offset + filter_resized.shape[0])
-        x1, x2 = max(0, x_offset), min(image.shape[1], x_offset + filter_resized.shape[1])
+        glasses_width = int(ew * 1.5)
+        glasses_height = int(eh * 0.6)
+        glasses_image = cv2.resize(glasses_image, (glasses_width, glasses_height))
 
-        alpha_s = filter_resized[:, :, 3] / 255.0
+        x_offset = ex - int(0.2 * ew)
+        y_offset = ey + int(0.4 * eh)
+
+        alpha_s = glasses_image[:, :, 3] / 255.0
         alpha_l = 1.0 - alpha_s
 
-        for c in range(0, 3):
-            image[y1:y2, x1:x2, c] = (alpha_s * filter_resized[:, :, c] +
-                                      alpha_l * image[y1:y2, x1:x2, c])
+        for c in range(3):
+            image[y_offset:y_offset + glasses_height, x_offset:x_offset + glasses_width, c] = \
+                (alpha_s * glasses_image[:, :, c] + alpha_l * image[y_offset:y_offset + glasses_height,
+                                                                    x_offset:x_offset + glasses_width, c])
 
     return image
 
