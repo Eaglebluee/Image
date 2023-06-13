@@ -96,7 +96,9 @@ def cartoon_effect(image, num_down=2, num_bilateral=7):
                                      C=2)
 
     img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
-    return cv2.bitwise_and(img_color, img_edge)
+    cartoon_img = cv2.bitwise_and(img_color, img_edge)
+    return cartoon_img
+
 
 
 def greyscale(image):
