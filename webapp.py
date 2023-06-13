@@ -4,8 +4,6 @@ import numpy as np
 from PIL import Image
 from streamlit_image_comparison import image_comparison
 import io
-import colorsys
-
 
 
 def brighten_image(image, amount):
@@ -19,11 +17,10 @@ def blur_image(image, amount):
 
 
 def enhance_details(img):
-    img_float = img.astype(np.float32) / 255.0
-    hdr = cv2.detailEnhance(img_float, sigma_s=12, sigma_r=0.15)
-    hdr = (hdr * 255).clip(0, 255).astype(np.uint8)
-    return hdr
-
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB format
+    hdr = cv2.detailEnhance(img_rgb, sigma_s=12, sigma_r=0.15)
+    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)  # Convert back to BGR format
+    return hdr_bgr
 
 
 def cartoon_effect(img):
@@ -92,22 +89,8 @@ def detect_faces(img):
     return img
 
 
-def apply_saturation(img, saturation_amount):
-    if len(img.shape) < 3 or img.shape[2] < 3:
-        # Skip saturation adjustment for grayscale images
-        return img
-
-    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    h, s, v = cv2.split(img_hsv)
-    s = np.clip(s * saturation_amount, 0, 255).astype(np.uint8)
-    img_hsv_sat = cv2.merge([h, s, v])
-    img_rgb_sat = cv2.cvtColor(img_hsv_sat, cv2.COLOR_HSV2BGR)
-    return img_rgb_sat
-
-
-
-
 def main_loop():
+  
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -129,7 +112,6 @@ def main_loop():
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
-    saturation_amount = st.sidebar.slider("Saturation", min_value=0.0, max_value=2.0, value=1.0, step=0.1)
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
 
     image_file = st.file_uploader("Upload Your Image", type=['jpg', 'png', 'jpeg'])
@@ -161,8 +143,8 @@ def main_loop():
     processed_image = blur_image(processed_image, blur_rate)
     processed_image = brighten_image(processed_image, brightness_amount)
 
-    if saturation_amount != 1.0:
-        processed_image = apply_saturation(processed_image, saturation_amount)
+    if apply_enhancement_filter:
+        processed_image = enhance_details(processed_image)
 
     st.text("Original Image vs Processed Image")
 
