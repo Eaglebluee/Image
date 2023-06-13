@@ -90,7 +90,7 @@ def detect_faces(img):
 
 
 def main_loop():
-
+  
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -112,14 +112,6 @@ def main_loop():
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
-    rgb_sliders = {
-        "Red": st.sidebar.slider("Red", min_value=0, max_value=255, value=0),
-        "Green": st.sidebar.slider("Green", min_value=0, max_value=255, value=0),
-        "Blue": st.sidebar.slider("Blue", min_value=0, max_value=255, value=0)
-    }
-    saturation = st.sidebar.slider("Saturation", min_value=0.0, max_value=2.0, value=1.0)
-    shadow = st.sidebar.slider("Shadow", min_value=0.0, max_value=1.0, value=0.5)
-    
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
 
     image_file = st.file_uploader("Upload Your Image", type=['jpg', 'png', 'jpeg'])
@@ -150,21 +142,6 @@ def main_loop():
 
     processed_image = blur_image(processed_image, blur_rate)
     processed_image = brighten_image(processed_image, brightness_amount)
-
-    # Adjust RGB values
-    processed_image[..., 0] = np.clip(processed_image[..., 0] + rgb_sliders["Red"], 0, 255)
-    processed_image[..., 1] = np.clip(processed_image[..., 1] + rgb_sliders["Green"], 0, 255)
-    processed_image[..., 2] = np.clip(processed_image[..., 2] + rgb_sliders["Blue"], 0, 255)
-
-    # Adjust saturation
-    processed_image = cv2.cvtColor(processed_image, cv2.COLOR_BGR2HSV)
-    processed_image[..., 1] = np.clip(processed_image[..., 1] * saturation, 0, 255)
-    processed_image = cv2.cvtColor(processed_image, cv2.COLOR_HSV2BGR)
-
-    # Adjust shadows
-    processed_image = processed_image.astype('float32')
-    processed_image[..., 2] = np.clip(processed_image[..., 2] * (1 - shadow), 0, 255)
-    processed_image = processed_image.astype('uint8')
 
     if apply_enhancement_filter:
         processed_image = enhance_details(processed_image)
