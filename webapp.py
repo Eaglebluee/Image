@@ -69,21 +69,34 @@ def winter(img):
     return winter_img
 
 
-def save_image(image, filename):
-    image_pil = Image.fromarray(image)
-    image_pil.save(filename)
+def detect_faces(img):
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+    for (x, y, w, h) in faces:
+        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+        roi_gray = gray[y:y + h, x:x + w]
+        roi_color = img[y:y + h, x:x + w]
+        eyes = eye_cascade.detectMultiScale(roi_gray)
+        for (ex, ey, ew, eh) in eyes:
+            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+
+    return img
 
 
 def main_loop():
-    st.title("Image Editor")
-    st.subheader("You can edit and apply Filters to your images!")
+    st.title("Image Filters")
+    st.sidebar.title("Filter Options")
 
     filters = {
-        "Original Image": "Original Image without any modifications",
-        "Cartoon Effect": "Apply a cartoon effect to the image",
+        "Detect Faces": "Detect and draw boxes around faces and eyes",
+        "Cartoon Effect": "Apply a cartoon effect",
         "Gray Effect": "Convert the image to grayscale",
-        "Sepia Effect": "Apply a sepia tone effect to the image",
-        "Pencil Sketch": "Create a pencil sketch effect",
+        "Sepia Effect": "Apply a sepia effect",
+        "Pencil Sketch": "Convert the image to a pencil sketch",
         "Invert Effect": "Invert the colors of the image",
         "Summer": "Apply a summer color effect",
         "Winter": "Apply a winter color effect"
@@ -107,7 +120,9 @@ def main_loop():
 
     processed_image = np.copy(original_image)
 
-    if selected_filter == "Cartoon Effect":
+    if selected_filter == "Detect Faces":
+        processed_image = detect_faces(processed_image)
+    elif selected_filter == "Cartoon Effect":
         processed_image = cartoon_effect(processed_image)
     elif selected_filter == "Gray Effect":
         processed_image = greyscale(processed_image)
