@@ -17,9 +17,9 @@ def blur_image(image, amount):
 
 
 def enhance_details(img):
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB format
     hdr = cv2.detailEnhance(img_rgb, sigma_s=12, sigma_r=0.15)
-    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)
+    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)  # Convert back to BGR format
     return hdr_bgr
 
 
@@ -39,11 +39,11 @@ def greyscale(img):
 
 
 def sepia(img):
-    img_sepia = np.array(img, dtype=np.float64)
+    img_sepia = np.array(img, dtype=np.float64)  # converting to float to prevent loss
     img_sepia = cv2.transform(img_sepia, np.matrix([[0.272, 0.534, 0.131],
                                                     [0.349, 0.686, 0.168],
-                                                    [0.393, 0.769, 0.189]]))
-    img_sepia[np.where(img_sepia > 255)] = 255
+                                                    [0.393, 0.769, 0.189]]))  # multiplying image with sepia matrix
+    img_sepia[np.where(img_sepia > 255)] = 255  # normalizing values greater than 255 to 255
     img_sepia = np.array(img_sepia, dtype=np.uint8)
     return img_sepia
 
@@ -90,7 +90,8 @@ def detect_faces(img):
     return img
 
 
-def main():
+def main_loop():
+  
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -105,10 +106,9 @@ def main():
         "Winter": "Apply a winter color effect"
     }
 
-    st.sidebar.markdown("## Filters")
-    selected_filter = st.sidebar.selectbox("", list(filters.keys()), format_func=lambda x: filters[x])
+    selected_filter = st.sidebar.selectbox("Filters", list(filters.keys()), format_func=lambda x: x)
     filter_tooltip = filters[selected_filter]
-    st.sidebar.markdown(f"**Filter Description**: {filter_tooltip}")
+    st.sidebar.text(filter_tooltip)
 
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
@@ -147,7 +147,8 @@ def main():
     if apply_enhancement_filter:
         processed_image = enhance_details(processed_image)
 
-    st.markdown("### Original Image vs Processed Image")
+    st.text("Original Image vs Processed Image")
+
     image_comparison(
         img1=original_image,
         img2=processed_image,
@@ -162,4 +163,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_loop()
