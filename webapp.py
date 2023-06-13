@@ -17,15 +17,9 @@ def blur_image(image, amount):
     return blur_img
 
 
-def enhance_details(img, saturation_amount):
+def enhance_details(img):
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
-    h, s, v = cv2.split(hsv)
-    s = np.clip(s * saturation_amount, 0, 255).astype(np.uint8)
-    enhanced_hsv = cv2.merge([h, s, v])
-    enhanced_rgb = cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2RGB)
-    enhanced_bgr = cv2.cvtColor(enhanced_rgb, cv2.COLOR_RGB2BGR)
-    return enhanced_bgr
+    return img_rgb
 
 
 def cartoon_effect(img):
@@ -94,6 +88,16 @@ def detect_faces(img):
     return img
 
 
+def apply_saturation(img, saturation_amount):
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    h, s, v = cv2.split(img_hsv)
+    s = np.clip(s * saturation_amount, 0, 255).astype(np.uint8)
+    img_hsv_sat = cv2.merge([h, s, v])
+    img_rgb_sat = cv2.cvtColor(img_hsv_sat, cv2.COLOR_HSV2RGB)
+    return img_rgb_sat
+
+
 def main_loop():
     st.sidebar.title("Filter Options")
 
@@ -148,8 +152,8 @@ def main_loop():
     processed_image = blur_image(processed_image, blur_rate)
     processed_image = brighten_image(processed_image, brightness_amount)
 
-    if apply_enhancement_filter:
-        processed_image = enhance_details(processed_image, saturation_amount)
+    if saturation_amount != 1.0:
+        processed_image = apply_saturation(processed_image, saturation_amount)
 
     st.text("Original Image vs Processed Image")
 
