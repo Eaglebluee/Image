@@ -11,14 +11,6 @@ def brighten_image(image, amount):
     return img_bright
 
 
-
-
-
-
-
-
-
-
 def blur_image(image, amount):
     blur_img = cv2.GaussianBlur(image, (11, 11), amount)
     return blur_img
@@ -78,10 +70,6 @@ def winter(img):
     return winter_img
 
 
-
-
-
-
 def save_image(image, filename):
     image_pil = Image.fromarray(image)
     image_pil.save(filename)
@@ -90,7 +78,6 @@ def save_image(image, filename):
 def main_loop():
     st.title("Image Editor")
     st.subheader("You can edit and apply Filters to your images !")
-    
 
     filters = {
         "Original Image": "Original Image without any modifications",
@@ -108,7 +95,7 @@ def main_loop():
     st.sidebar.text(filter_tooltip)
 
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
-   
+
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
 
@@ -118,6 +105,9 @@ def main_loop():
 
     original_image = Image.open(image_file)
     original_image = np.array(original_image)
+
+    if apply_enhancement_filter:
+        original_image = enhance_details(original_image)
 
     if selected_filter == "Cartoon Effect":
         processed_image = cartoon_effect(original_image)
@@ -138,11 +128,6 @@ def main_loop():
 
     processed_image = blur_image(processed_image, blur_rate)
     processed_image = brighten_image(processed_image, brightness_amount)
-   
-
-    if apply_enhancement_filter:
-        processed_image = enhance_details(processed_image)
-    
 
     st.text("Original Image vs Processed Image")
 
