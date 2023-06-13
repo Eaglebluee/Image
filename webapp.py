@@ -25,11 +25,12 @@ def enhance_details(img):
 
 def cartoon_effect(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray_blur = cv2.medianBlur(gray, 7)
-    edges = cv2.adaptiveThreshold(gray_blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 7, 7)
+    gray_blur = cv2.medianBlur(gray, 5)
+    edges = cv2.adaptiveThreshold(gray_blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 7)
     color = cv2.bilateralFilter(img, 9, 250, 250)
     cartoon_img = cv2.bitwise_and(color, color, mask=edges)
     return cartoon_img
+
 
 
 def greyscale(img):
