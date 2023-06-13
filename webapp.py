@@ -49,8 +49,12 @@ def sepia(img):
 
 
 def pencil_sketch_grey(img):
-    sk_gray, sk_color = cv2.pencilSketch(img, sigma_s=60, sigma_r=0.07, shade_factor=0.1)
-    return sk_gray
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    inverted = cv2.bitwise_not(gray)
+    blurred = cv2.GaussianBlur(inverted, (21, 21), 0)
+    pencil_sketch = cv2.divide(gray, 255 - blurred, scale=256.0)
+    return pencil_sketch
+
 
 
 def invert(img):
