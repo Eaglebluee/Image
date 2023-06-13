@@ -89,12 +89,17 @@ def detect_faces(img):
 
 
 def apply_saturation(img, saturation_amount):
+    if len(img.shape) < 3 or img.shape[2] < 3:
+        # Skip saturation adjustment for grayscale images
+        return img
+
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(img_hsv)
     s = np.clip(s * saturation_amount, 0, 255).astype(np.uint8)
     img_hsv_sat = cv2.merge([h, s, v])
     img_rgb_sat = cv2.cvtColor(img_hsv_sat, cv2.COLOR_HSV2BGR)
     return img_rgb_sat
+
 
 
 
