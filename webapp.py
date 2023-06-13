@@ -90,10 +90,7 @@ def main_loop():
         "Detect Faces": "Detect and highlight faces in the image"
     }
 
-    selected_filter = st.sidebar.selectbox("Filters", list(filters.keys()), format_func=lambda x: x)
-    filter_tooltip = filters[selected_filter]
-    st.sidebar.text(filter_tooltip)
-
+    
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
@@ -181,26 +178,6 @@ def detect_and_draw_faces(image):
     return image, faces, eyes
 
 
-def apply_face_filter(image, eyes, selected_face_filter):
-    filter_path = f"Glasses_{selected_face_filter.split(' ')[-1]}.png"
-    filter_image = cv2.imread(filter_path, cv2.IMREAD_UNCHANGED)
-
-    for (ex, ey, ew, eh) in eyes:
-        # Adjust the position and size of the filter based on eye position and size
-        filter_resized = cv2.resize(filter_image, (ew, eh))
-        y_offset = ey - int(eh / 3)
-        x_offset = ex
-        y1, y2 = max(0, y_offset), min(image.shape[0], y_offset + filter_resized.shape[0])
-        x1, x2 = max(0, x_offset), min(image.shape[1], x_offset + filter_resized.shape[1])
-
-        alpha_s = filter_resized[:, :, 3] / 255.0
-        alpha_l = 1.0 - alpha_s
-
-        for c in range(0, 3):
-            image[y1:y2, x1:x2, c] = (alpha_s * filter_resized[:, :, c] +
-                                      alpha_l * image[y1:y2, x1:x2, c])
-
-    return image
 
 
 if __name__ == "__main__":
