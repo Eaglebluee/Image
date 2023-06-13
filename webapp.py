@@ -90,7 +90,7 @@ def detect_faces(img):
 
 
 def main_loop():
-    st.title("Image Filters")
+  
     st.sidebar.title("Filter Options")
 
     filters = {
