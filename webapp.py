@@ -5,7 +5,7 @@ from PIL import Image
 from streamlit_image_comparison import image_comparison
 import io
 import colorsys
-import cv2.xphoto as cv2xphoto
+
 
 
 def brighten_image(image, amount):
@@ -20,9 +20,8 @@ def blur_image(image, amount):
 
 def enhance_details(img):
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB format
-    hdr = cv2xphoto.createTonemapDurand(gamma=2.2, contrast=3, saturation=1.5, sigma_space=1, sigma_color=1)
-    hdr_img = hdr.process(img_rgb)
-    hdr_bgr = cv2.cvtColor(hdr_img, cv2.COLOR_RGB2BGR)  # Convert back to BGR format
+    hdr = cv2.detailEnhance(img_rgb, sigma_s=12, sigma_r=0.15)
+    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)  # Convert back to BGR format
     return hdr_bgr
 
 
