@@ -92,6 +92,7 @@ def main_loop():
     st.sidebar.title("Filter Options")
 
     filters = {
+        "Original Image": "Display the original image",
         "Detect Faces": "Detect and draw boxes around faces and eyes",
         "Cartoon Effect": "Apply a cartoon effect",
         "Gray Effect": "Convert the image to grayscale",
