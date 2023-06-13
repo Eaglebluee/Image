@@ -75,9 +75,8 @@ def main_loop():
 
     st.image(processed_image, use_column_width=True)
 
-
 def cartoon_effect(image, num_down=2, num_bilateral=7):
-    img_color = image
+    img_color = image.copy()
     for _ in range(num_down):
         img_color = cv2.pyrDown(img_color)
 
