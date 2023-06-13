@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 from streamlit_image_comparison import image_comparison
 import io
+import colorsys
 
 
 def brighten_image(image, amount):
@@ -16,11 +17,15 @@ def blur_image(image, amount):
     return blur_img
 
 
-def enhance_details(img):
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB format
-    hdr = cv2.detailEnhance(img_rgb, sigma_s=12, sigma_r=0.15)
-    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)  # Convert back to BGR format
-    return hdr_bgr
+def enhance_details(img, saturation_amount):
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    h, s, v = cv2.split(hsv)
+    s = np.clip(s * saturation_amount, 0, 255).astype(np.uint8)
+    enhanced_hsv = cv2.merge([h, s, v])
+    enhanced_rgb = cv2.cvtColor(enhanced_hsv, cv2.COLOR_HSV2RGB)
+    enhanced_bgr = cv2.cvtColor(enhanced_rgb, cv2.COLOR_RGB2BGR)
+    return enhanced_bgr
 
 
 def cartoon_effect(img):
@@ -90,7 +95,6 @@ def detect_faces(img):
 
 
 def main_loop():
-  
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -112,6 +116,7 @@ def main_loop():
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
+    saturation_amount = st.sidebar.slider("Saturation", min_value=0.0, max_value=2.0, value=1.0, step=0.1)
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
 
     image_file = st.file_uploader("Upload Your Image", type=['jpg', 'png', 'jpeg'])
@@ -144,7 +149,7 @@ def main_loop():
     processed_image = brighten_image(processed_image, brightness_amount)
 
     if apply_enhancement_filter:
-        processed_image = enhance_details(processed_image)
+        processed_image = enhance_details(processed_image, saturation_amount)
 
     st.text("Original Image vs Processed Image")
 
