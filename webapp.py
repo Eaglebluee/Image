@@ -19,8 +19,11 @@ def blur_image(image, amount):
 
 
 def enhance_details(img):
-    hdr = cv2.detailEnhance(img, sigma_s=12, sigma_r=0.15)
+    img_float = img.astype(np.float32) / 255.0
+    hdr = cv2.detailEnhance(img_float, sigma_s=12, sigma_r=0.15)
+    hdr = (hdr * 255).clip(0, 255).astype(np.uint8)
     return hdr
+
 
 
 def cartoon_effect(img):
