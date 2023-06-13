@@ -17,9 +17,9 @@ def blur_image(image, amount):
 
 
 def enhance_details(img):
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert to RGB format
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     hdr = cv2.detailEnhance(img_rgb, sigma_s=12, sigma_r=0.15)
-    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)  # Convert back to BGR format
+    hdr_bgr = cv2.cvtColor(hdr, cv2.COLOR_RGB2BGR)
     return hdr_bgr
 
 
@@ -38,11 +38,11 @@ def greyscale(img):
 
 
 def sepia(img):
-    img_sepia = np.array(img, dtype=np.float64)  # converting to float to prevent loss
+    img_sepia = np.array(img, dtype=np.float64)
     img_sepia = cv2.transform(img_sepia, np.matrix([[0.272, 0.534, 0.131],
                                                     [0.349, 0.686, 0.168],
-                                                    [0.393, 0.769, 0.189]]))  # multiplying image with sepia matrix
-    img_sepia[np.where(img_sepia > 255)] = 255  # normalizing values greater than 255 to 255
+                                                    [0.393, 0.769, 0.189]]))
+    img_sepia[np.where(img_sepia > 255)] = 255
     img_sepia = np.array(img_sepia, dtype=np.uint8)
     return img_sepia
 
@@ -89,8 +89,21 @@ def detect_faces(img):
     return img
 
 
+def add_text(img, text, position, font_size=20, font_color=(255, 255, 255), font_thickness=2):
+    # Convert PIL Image to OpenCV format
+    img = np.array(img)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+    # Add text to the image
+    cv2.putText(img, text, position, cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+
+    # Convert back to PIL Image format
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = Image.fromarray(img)
+    return img
+
+
 def main_loop():
-  
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -113,6 +126,13 @@ def main_loop():
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
+
+    add_text_checkbox = st.sidebar.checkbox("Add Text")
+    if add_text_checkbox:
+        text = st.sidebar.text_input("Text")
+        position_x = st.sidebar.slider("Position X", 0, 1000, 500)
+        position_y = st.sidebar.slider("Position Y", 0, 1000, 500)
+        font_size = st.sidebar.slider("Font Size", 10, 100, 20)
 
     image_file = st.file_uploader("Upload Your Image", type=['jpg', 'png', 'jpeg'])
     if not image_file:
@@ -145,6 +165,10 @@ def main_loop():
 
     if apply_enhancement_filter:
         processed_image = enhance_details(processed_image)
+
+    if add_text_checkbox and text:
+        position = (position_x, position_y)
+        processed_image = add_text(processed_image, text, position, font_size)
 
     st.text("Original Image vs Processed Image")
 
