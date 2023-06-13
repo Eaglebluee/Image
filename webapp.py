@@ -89,13 +89,13 @@ def detect_faces(img):
 
 
 def apply_saturation(img, saturation_amount):
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(img_hsv)
     s = np.clip(s * saturation_amount, 0, 255).astype(np.uint8)
     img_hsv_sat = cv2.merge([h, s, v])
-    img_rgb_sat = cv2.cvtColor(img_hsv_sat, cv2.COLOR_HSV2RGB)
+    img_rgb_sat = cv2.cvtColor(img_hsv_sat, cv2.COLOR_HSV2BGR)
     return img_rgb_sat
+
 
 
 def main_loop():
