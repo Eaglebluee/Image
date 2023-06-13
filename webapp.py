@@ -86,29 +86,17 @@ def main_loop():
         "Pencil Sketch": "Create a pencil sketch effect",
         "Invert Effect": "Invert the colors of the image",
         "Summer": "Apply a summer color effect",
-        "Winter": "Apply a winter color effect",
-        "Detect Faces": "Detect and highlight faces in the image"
+        "Winter": "Apply a winter color effect"
     }
 
-    
+    selected_filter = st.sidebar.selectbox("Filters", list(filters.keys()), format_func=lambda x: x)
+    filter_tooltip = filters[selected_filter]
+    st.sidebar.text(filter_tooltip)
+
     blur_rate = st.sidebar.slider("Blurring", min_value=0.5, max_value=3.5)
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
-
-    detect_faces = selected_filter == "Detect Faces"
-
-    if detect_faces:
-        face_filters = {
-            "Glasses 1": "Apply Glasses 1 filter to the detected eyes",
-            "Glasses 2": "Apply Glasses 2 filter to the detected eyes",
-            "Glasses 3": "Apply Glasses 3 filter to the detected eyes",
-            "Glasses 4": "Apply Glasses 4 filter to the detected eyes",
-            "Glasses 5": "Apply Glasses 5 filter to the detected eyes"
-        }
-        selected_face_filter = st.sidebar.selectbox("Face Filters", list(face_filters.keys()), format_func=lambda x: x)
-        face_filter_tooltip = face_filters[selected_face_filter]
-        st.sidebar.text(face_filter_tooltip)
 
     image_file = st.file_uploader("Upload Your Image", type=['jpg', 'png', 'jpeg'])
     if not image_file:
@@ -140,11 +128,6 @@ def main_loop():
     if apply_enhancement_filter:
         processed_image = enhance_details(processed_image)
 
-    if detect_faces:
-        processed_image, faces, eyes = detect_and_draw_faces(processed_image)
-        if selected_face_filter:
-            processed_image = apply_face_filter(processed_image, eyes, selected_face_filter)
-
     st.text("Original Image vs Processed Image")
 
     image_comparison(
@@ -158,26 +141,6 @@ def main_loop():
     processed_image_pil.save(output, format='JPEG')
     output.seek(0)
     st.download_button("Download Processed Image", data=output, file_name="processed_image.jpg")
-
-
-def detect_and_draw_faces(image):
-    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-    eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
-
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-
-    for (x, y, w, h) in faces:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        roi_gray = gray[y:y + h, x:x + w]
-        roi_color = image[y:y + h, x:x + w]
-        eyes = eye_cascade.detectMultiScale(roi_gray)
-        for (ex, ey, ew, eh) in eyes:
-            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (255, 0, 0), 2)
-
-    return image, faces, eyes
-
-
 
 
 if __name__ == "__main__":
