@@ -49,9 +49,6 @@ h1 {
 </style>
 '''
 
-with open('styles.css') as f:
-    css += f.read()
-
 st.markdown(css, unsafe_allow_html=True)
 
 
