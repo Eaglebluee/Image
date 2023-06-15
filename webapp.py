@@ -4,9 +4,55 @@ import numpy as np
 from PIL import Image
 from streamlit_image_comparison import image_comparison
 import io
-with open('styles.css') as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+css = '''
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
 
+.gradient-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: linear-gradient(45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  color: #333333;
+  text-align: center;
+  margin: 20px 0;
+}
+</style>
+'''
+
+with open('styles.css') as f:
+    css += f.read()
+
+st.markdown(css, unsafe_allow_html=True)
 
 
 def brighten_image(image, amount):
