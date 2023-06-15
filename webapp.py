@@ -8,6 +8,7 @@ with open('styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 
+
 def brighten_image(image, amount):
     img_bright = cv2.convertScaleAbs(image, beta=amount)
     return img_bright
