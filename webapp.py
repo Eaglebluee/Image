@@ -4,7 +4,8 @@ import numpy as np
 from PIL import Image
 from streamlit_image_comparison import image_comparison
 import io
-
+with open('styles.css') as f:
+    st.markdown(f'<style>(f.read())</style>,unsafe_allow_html=True)
 
 def brighten_image(image, amount):
     img_bright = cv2.convertScaleAbs(image, beta=amount)
@@ -93,7 +94,7 @@ def detect_faces(img):
 
 
 def main_loop():
-    st.markdown('<style>.gradient-background { background: linear-gradient(to bottom right, #00C9FF, #92FE9D); height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: -1; }</style>', unsafe_allow_html=True)
+    
     st.sidebar.title("Filter Options")
 
     filters = {
