@@ -95,7 +95,7 @@ def detect_faces(img):
 
 
 def main_loop():
-  
+  st.markdown('<div class="gradient-background"></div>', unsafe_allow_html=True)
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -165,7 +165,7 @@ def main_loop():
     output.seek(0)
     st.download_button("Download Processed Image", data=output, file_name="processed_image.jpg")
 
-st.markdown('<div class="gradient-background"></div>', unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main_loop()
