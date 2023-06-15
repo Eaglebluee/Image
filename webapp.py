@@ -32,7 +32,6 @@ def cartoon_effect(img):
     return cartoon_img
 
 
-
 def greyscale(img):
     greyscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return greyscale
@@ -54,7 +53,6 @@ def pencil_sketch_grey(img):
     blurred = cv2.GaussianBlur(inverted, (21, 21), 0)
     pencil_sketch = cv2.divide(gray, 255 - blurred, scale=256.0)
     return pencil_sketch
-
 
 
 def invert(img):
@@ -95,7 +93,7 @@ def detect_faces(img):
 
 
 def main_loop():
-  st.markdown('<div class="gradient-background"></div>', unsafe_allow_html=True)
+    st.markdown('<style>.gradient-background { background: linear-gradient(to bottom right, #00C9FF, #92FE9D); height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: -1; }</style>', unsafe_allow_html=True)
     st.sidebar.title("Filter Options")
 
     filters = {
@@ -164,7 +162,6 @@ def main_loop():
     processed_image_pil.save(output, format='JPEG')
     output.seek(0)
     st.download_button("Download Processed Image", data=output, file_name="processed_image.jpg")
-
 
 
 if __name__ == "__main__":
